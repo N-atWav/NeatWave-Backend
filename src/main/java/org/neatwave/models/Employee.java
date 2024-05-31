@@ -7,15 +7,15 @@ import java.util.Date;
 
 @Data
 @Entity
-@Table(name = "customers")
-public class Customer {
+@Table(name = "employees")
+public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long customerId;
+    private Long employeeId;
     private String firstName;
     private String lastName;
-    private String phone;
+    private String position;
     private String email;
-    private String address;
-    private Date registrationDate;
+    private String phone;
+    private Date hireDate;
 }
