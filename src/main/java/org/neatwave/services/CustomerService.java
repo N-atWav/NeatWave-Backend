@@ -1,11 +1,16 @@
 package org.neatwave.services;
 
+import lombok.SneakyThrows;
 import org.neatwave.dto.CustomerDTO;
 import org.neatwave.models.Customer;
+import org.neatwave.models.Role;
 import org.neatwave.repositories.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -71,5 +76,42 @@ public class CustomerService {
         customer.setAddress(customerDTO.getAddress());
         customer.setRegistrationDate(customerDTO.getRegistrationDate());
         return customer;
+    }
+
+    public Customer getByUsername(String username) throws RuntimeException {
+        return customerRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+    }
+
+    public Customer create(Customer Customer) {
+        if (customerRepository.existsByUsername(Customer.getUsername())) {
+            // Заменить на свои исключения
+            throw new RuntimeException("Пользователь с таким именем уже существует");
+        }
+
+        if (customerRepository.existsByEmail(Customer.getEmail())) {
+            throw new RuntimeException("Пользователь с таким email уже существует");
+        }
+
+        return customerRepository.save(Customer);
+    }
+
+    @SneakyThrows
+    public UserDetailsService userDetailsService() {
+        return this::getByUsername;
+    }
+
+    public Customer getCurrentUser() throws Exception {
+        // Получение имени пользователя из контекста Spring Security
+        var username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return getByUsername(username);
+    }
+
+    @Deprecated
+    public void getAdmin() throws Exception {
+        var user = getCurrentUser();
+        user.setRole(Role.ROLE_ADMIN);
+        customerRepository.save(user);
     }
 }
